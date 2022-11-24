@@ -1,12 +1,9 @@
-const defaultDataCaret = '|';
 const defaultDataPS = '$';
 export class EasyTerminal {
     constructor(config) {
         var _a, _b, _c, _d, _e, _f;
         if (!config['data-ps'])
             config['data-ps'] = defaultDataPS;
-        if (!config['welcome'])
-            config['welcome'] = 'Welcome to EasyTerminal';
         const terminalDOM = document.createElement('div');
         terminalDOM.style.backgroundColor = 'black';
         terminalDOM.style.color = 'white';
@@ -35,7 +32,7 @@ export class EasyTerminal {
         terminalDOM.appendChild(full);
         const content = document.createElement('div');
         content.classList.add('content');
-        content.innerHTML = config.welcome;
+        content.innerHTML = config.welcome || '';
         const prompt = document.createElement('div');
         prompt.classList.add('prompt');
         const input = document.createElement('div');

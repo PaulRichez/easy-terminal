@@ -1,11 +1,9 @@
 import {ITerminalConfig} from './models/TerminalConfig.model';
-const defaultDataCaret = '|';
 const defaultDataPS = '$';
 export class EasyTerminal {
   private headerChildCSS: HTMLStyleElement;
   constructor(config: ITerminalConfig) {
     if (!config['data-ps']) config['data-ps'] = defaultDataPS;
-    if (!config['welcome']) config['welcome'] = 'Welcome to EasyTerminal';
 
     const terminalDOM = document.createElement('div');
     terminalDOM.style.backgroundColor = 'black';
@@ -37,7 +35,7 @@ export class EasyTerminal {
     terminalDOM.appendChild(full);
     const content = document.createElement('div');
     content.classList.add('content');
-    content.innerHTML = config.welcome;
+    content.innerHTML = config.welcome || '';
     const prompt = document.createElement('div');
     prompt.classList.add('prompt');
     const input = document.createElement('div');
