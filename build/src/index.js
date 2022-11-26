@@ -13,6 +13,8 @@ export class EasyTerminal {
         var _a, _b, _c, _d, _e, _f;
         this.config = config;
         this.nativeCommands = [];
+        this.history = [];
+        this.historyPos = -1;
         if (!config['data-ps'])
             config['data-ps'] = defaultDataPS;
         const terminalDOM = document.createElement('div');
@@ -92,10 +94,38 @@ export class EasyTerminal {
         terminalDOM.addEventListener('click', () => {
             this.inputHtmlElement.focus();
         });
-        this.inputHtmlElement.addEventListener('keypress', event => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                this.exec(this.inputHtmlElement.textContent);
+        this.inputHtmlElement.addEventListener('keydown', event => {
+            switch (event.key) {
+                case 'Enter':
+                    event.preventDefault();
+                    this.exec(this.inputHtmlElement.textContent);
+                    break;
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (!this.config.history)
+                        return;
+                    if (this.history[this.historyPos - 1]) {
+                        this.historyPos--;
+                        this.inputHtmlElement.textContent =
+                            this.history[this.historyPos].info.fullText;
+                    }
+                    else {
+                        if (this.historyPos === 0) {
+                            this.historyPos = -1;
+                            this.inputHtmlElement.textContent = '';
+                        }
+                    }
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (!this.config.history)
+                        return;
+                    if (this.history[this.historyPos + 1]) {
+                        this.historyPos++;
+                        this.inputHtmlElement.textContent =
+                            this.history[this.historyPos].info.fullText;
+                    }
+                    break;
             }
         });
         const terminalStyle = document.createElement('style');
@@ -118,7 +148,7 @@ export class EasyTerminal {
             {
                 name: 'clear',
                 method: (cmd) => {
-                    cmd.options.terminalElement.content.innerHTML = '';
+                    cmd.options.terminalElements.content.innerHTML = '';
                 },
             },
         ];
@@ -136,15 +166,24 @@ export class EasyTerminal {
             this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
             this.inputHtmlElement.textContent = '';
             this.inputHtmlElement.style.display = 'none';
+            const arrayText = text === null || text === void 0 ? void 0 : text.split(' ');
+            arrayText === null || arrayText === void 0 ? void 0 : arrayText.shift();
+            const command = this.nativeCommands.find(c => c.name === (text === null || text === void 0 ? void 0 : text.split(' ')[0]));
             const cmd = new CMD({
-                terminalElement: {
+                terminalElements: {
                     commandContainer,
                     content: this.contentHtmlElement,
                     input: this.inputHtmlElement,
                 },
+                info: {
+                    args: arrayText || null,
+                    cmdFound: !!command,
+                    fullText: text || '',
+                    textArgs: (arrayText === null || arrayText === void 0 ? void 0 : arrayText.join(' ')) || '',
+                    startDate: new Date(),
+                },
             }, this.config);
-            cmd.echo(text || '', true);
-            const command = this.nativeCommands.find(c => c.name === text);
+            cmd.echo(text || '');
             if (command) {
                 try {
                     yield command.method(cmd);
@@ -154,12 +193,31 @@ export class EasyTerminal {
                 }
             }
             if (!command) {
-                cmd.echo('Command not found');
+                cmd.echo('Command not found', false);
+            }
+            cmd.options.info.endDate = new Date();
+            if (this.config.history) {
+                this.addToHistory(cmd.options);
             }
             this.inputHtmlElement.style.display = 'block';
             this.contentHtmlElement.scrollTop =
                 this.contentHtmlElement.scrollHeight + 10;
         });
+    }
+    addToHistory(cmdOtions) {
+        if (!this.config.history)
+            return;
+        this.history.push(cmdOtions);
+        this.historyPos = -1;
+    }
+    getHistory() {
+        return this.history;
+    }
+    getHTMLElement() {
+        return {
+            content: this.contentHtmlElement,
+            input: this.inputHtmlElement,
+        };
     }
 }
 export class CMD {
@@ -169,7 +227,8 @@ export class CMD {
         this.options = options;
         this.terminalConfig = terminalConfig;
     }
-    echo(text, ps = false) {
+    echo(text, ps = true) {
+        var _a;
         const divEcho = document.createElement('div');
         divEcho.classList.add('echo');
         divEcho.style.lineHeight = '2em';
@@ -182,7 +241,10 @@ export class CMD {
         const spanEcho = document.createElement('span');
         spanEcho.innerHTML = text;
         divEcho.appendChild(spanEcho);
-        this.options.terminalElement.commandContainer.appendChild(divEcho);
+        (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divEcho);
+    }
+    log() {
+        console.log(this);
     }
 }
 //# sourceMappingURL=index.js.map

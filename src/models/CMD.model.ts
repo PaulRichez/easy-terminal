@@ -1,8 +1,14 @@
 /* eslint-disable prettier/prettier */
+import {ITerminalElements} from './terminalElements.model';
+
 export interface ICMD {
-  terminalElement: {
-    input: HTMLElement;
-    content: HTMLElement;
-    commandContainer: HTMLElement;
+  terminalElements: ITerminalElements;
+  info: {
+    cmdFound: boolean;
+    args: string[] | null;
+    fullText: string;
+    textArgs: string;
+    startDate: Date;
+    endDate?: Date;
   };
 }

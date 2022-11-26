@@ -1,12 +1,15 @@
 import {ICMD} from './models/CMD.model';
 import {ITerminalCommand} from './models/TerminalCommand.model';
 import {ITerminalConfig} from './models/TerminalConfig.model';
+import {ITerminalElements} from './models/terminalElements.model';
 const defaultDataPS = '$';
 export class EasyTerminal {
   private headerChildCSS: HTMLStyleElement;
   private contentHtmlElement: HTMLElement;
   private inputHtmlElement: HTMLElement;
   private nativeCommands: ITerminalCommand[] = [];
+  private history: ICMD[] = [];
+  private historyPos = -1;
   constructor(private config: ITerminalConfig) {
     if (!config['data-ps']) config['data-ps'] = defaultDataPS;
 
@@ -93,10 +96,35 @@ export class EasyTerminal {
       this.inputHtmlElement.focus();
     });
 
-    this.inputHtmlElement.addEventListener('keypress', event => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        this.exec(this.inputHtmlElement.textContent);
+    this.inputHtmlElement.addEventListener('keydown', event => {
+      switch (event.key) {
+        case 'Enter':
+          event.preventDefault();
+          this.exec(this.inputHtmlElement.textContent);
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          if (!this.config.history) return;
+          if (this.history[this.historyPos - 1]) {
+            this.historyPos--;
+            this.inputHtmlElement.textContent =
+              this.history[this.historyPos].info.fullText;
+          } else {
+            if (this.historyPos === 0) {
+              this.historyPos = -1;
+              this.inputHtmlElement.textContent = '';
+            }
+          }
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          if (!this.config.history) return;
+          if (this.history[this.historyPos + 1]) {
+            this.historyPos++;
+            this.inputHtmlElement.textContent =
+              this.history[this.historyPos].info.fullText;
+          }
+          break;
       }
     });
 
@@ -122,7 +150,7 @@ export class EasyTerminal {
       {
         name: 'clear',
         method: (cmd: CMD) => {
-          cmd.options.terminalElement.content.innerHTML = '';
+          cmd.options.terminalElements.content.innerHTML = '';
         },
       },
     ];
@@ -141,18 +169,29 @@ export class EasyTerminal {
     this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
     this.inputHtmlElement.textContent = '';
     this.inputHtmlElement.style.display = 'none';
+    const arrayText = text?.split(' ');
+    arrayText?.shift();
+    const command = this.nativeCommands.find(
+      c => c.name === text?.split(' ')[0]
+    );
     const cmd = new CMD(
       {
-        terminalElement: {
+        terminalElements: {
           commandContainer,
           content: this.contentHtmlElement,
           input: this.inputHtmlElement,
         },
+        info: {
+          args: arrayText || null,
+          cmdFound: !!command,
+          fullText: text || '',
+          textArgs: arrayText?.join(' ') || '',
+          startDate: new Date(),
+        },
       },
       this.config
     );
-    cmd.echo(text || '', true);
-    const command = this.nativeCommands.find(c => c.name === text);
+    cmd.echo(text || '');
     if (command) {
       try {
         await command.method(cmd);
@@ -161,20 +200,44 @@ export class EasyTerminal {
       }
     }
     if (!command) {
-      cmd.echo('Command not found');
+      cmd.echo('Command not found', false);
+    }
+    cmd.options.info.endDate = new Date();
+    if (this.config.history) {
+      this.addToHistory(cmd.options);
     }
     this.inputHtmlElement.style.display = 'block';
     this.contentHtmlElement.scrollTop =
       this.contentHtmlElement.scrollHeight + 10;
   }
+
+  private addToHistory(cmdOtions: ICMD) {
+    if (!this.config.history) return;
+    this.history.push(cmdOtions);
+    this.historyPos = -1;
+  }
+
+  public getHistory(): ICMD[] {
+    return this.history;
+  }
+
+  public getHTMLElement(): ITerminalElements {
+    return {
+      content: this.contentHtmlElement,
+      input: this.inputHtmlElement,
+    };
+  }
 }
 
 export class CMD {
-  constructor(public options: ICMD, public terminalConfig: ITerminalConfig) {
+  constructor(
+    public readonly options: ICMD,
+    public readonly terminalConfig: ITerminalConfig
+  ) {
     this.options = options;
     this.terminalConfig = terminalConfig;
   }
-  public echo(text: string, ps = false) {
+  public echo(text: string, ps = true) {
     const divEcho = document.createElement('div');
     divEcho.classList.add('echo');
     divEcho.style.lineHeight = '2em';
@@ -187,6 +250,10 @@ export class CMD {
     const spanEcho = document.createElement('span');
     spanEcho.innerHTML = text;
     divEcho.appendChild(spanEcho);
-    this.options.terminalElement.commandContainer.appendChild(divEcho);
+    this.options.terminalElements.commandContainer?.appendChild(divEcho);
+  }
+
+  public log() {
+    console.log(this);
   }
 }

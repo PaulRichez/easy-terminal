@@ -8,5 +8,6 @@ new EasyTerminal({
     elementHtml: terminalElement,
     window: { show: true, title: 'EasyTerminal' },
     nativeCommands: true,
-    welcome: 'Welcome to EasyTerminal'
+    welcome: 'Welcome to EasyTerminal',
+    history: true,
 });
