@@ -6,5 +6,7 @@ const terminalElement = window.document.getElementById('terminal');
 
 new EasyTerminal({
     elementHtml: terminalElement,
-    window: { show: true, title: 'EasyTerminal' }
+    window: { show: true, title: 'EasyTerminal' },
+    nativeCommands: true,
+    welcome: 'Welcome to EasyTerminal'
 });

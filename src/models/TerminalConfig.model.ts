@@ -9,4 +9,5 @@ export interface ITerminalConfig {
   welcome?: string;
   elementHtml: HTMLElement;
   'data-ps'?: string;
+  nativeCommands: boolean;
 }

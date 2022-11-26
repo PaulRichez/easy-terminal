@@ -1,8 +1,13 @@
+import {ICMD} from './models/CMD.model';
+import {ITerminalCommand} from './models/TerminalCommand.model';
 import {ITerminalConfig} from './models/TerminalConfig.model';
 const defaultDataPS = '$';
 export class EasyTerminal {
   private headerChildCSS: HTMLStyleElement;
-  constructor(config: ITerminalConfig) {
+  private contentHtmlElement: HTMLElement;
+  private inputHtmlElement: HTMLElement;
+  private nativeCommands: ITerminalCommand[] = [];
+  constructor(private config: ITerminalConfig) {
     if (!config['data-ps']) config['data-ps'] = defaultDataPS;
 
     const terminalDOM = document.createElement('div');
@@ -26,72 +31,72 @@ export class EasyTerminal {
     const full = document.createElement('div');
     full.style.padding = '15px 15px 0 15px';
     full.style.height = '100%';
+    full.style.overflow = 'auto';
     if (config?.window?.show) {
       full.style.borderStyle = 'solid';
       full.style.borderColor = config?.window?.bgColor || '#198754';
       full.style.borderWidth = '4px';
+      full.style.borderTop = '0';
     }
 
     terminalDOM.appendChild(full);
-    const content = document.createElement('div');
-    content.classList.add('content');
-    content.innerHTML = config.welcome || '';
+    this.contentHtmlElement = document.createElement('div');
+    this.contentHtmlElement.classList.add('content');
+    this.contentHtmlElement.innerHTML = config.welcome || '';
     const prompt = document.createElement('div');
     prompt.classList.add('prompt');
-    const input = document.createElement('div');
-    input.classList.add('input');
-    input.classList.add('blink');
-    input.style.outline = 'none';
-    input.style.width = '100%';
-    input.style.wordWrap = 'break-word';
-    input.style.whiteSpace = 'pre-wrap';
-    input.style.lineHeight = '2em';
-    input.style.color = 'transparent';
-    input.style.textShadow = '0 0 0 #ddd';
-    input.style.fontSize = '1rem';
-    input.contentEditable = 'true';
-    input.spellcheck = false;
-    input.setAttribute('data-ps', config['data-ps']);
-    prompt.appendChild(input);
+    this.inputHtmlElement = document.createElement('div');
+    this.inputHtmlElement.classList.add('input');
+    this.inputHtmlElement.classList.add('blink');
+    this.inputHtmlElement.style.outline = 'none';
+    this.inputHtmlElement.style.width = '100%';
+    this.inputHtmlElement.style.wordWrap = 'break-word';
+    this.inputHtmlElement.style.whiteSpace = 'pre-wrap';
+    this.inputHtmlElement.style.lineHeight = '2em';
+    this.inputHtmlElement.style.color = 'transparent';
+    this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
+    this.inputHtmlElement.style.fontSize = '1rem';
+    this.inputHtmlElement.contentEditable = 'true';
+    this.inputHtmlElement.spellcheck = false;
+    this.inputHtmlElement.setAttribute('data-ps', config['data-ps']);
+    prompt.appendChild(this.inputHtmlElement);
 
     let inputFocused = false;
-    input.addEventListener('focusin', () => {
+    this.inputHtmlElement.addEventListener('focusin', () => {
       inputFocused = true;
     });
 
-    input.addEventListener('focusout', () => {
+    this.inputHtmlElement.addEventListener('focusout', () => {
       inputFocused = false;
-      input.classList.add('blink');
+      this.inputHtmlElement.classList.add('blink');
     });
 
     setInterval(() => {
-      if (inputFocused && !input.textContent) {
-        input.classList.toggle('blink');
+      if (inputFocused && !this.inputHtmlElement.textContent) {
+        this.inputHtmlElement.classList.toggle('blink');
       }
     }, 800);
 
-    input.addEventListener('input', event => {
+    this.inputHtmlElement.addEventListener('input', event => {
       if (!(event?.target as any)?.textContent) {
-        input.classList.remove('blink');
-        input.style.color = 'transparent';
-        input.style.textShadow = '0 0 0 #ddd';
+        this.inputHtmlElement.classList.remove('blink');
+        this.inputHtmlElement.style.color = 'transparent';
+        this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
       } else {
-        input.classList.add('blink');
-        input.style.textShadow = 'none';
-        input.style.color = '#ddd';
+        this.inputHtmlElement.classList.add('blink');
+        this.inputHtmlElement.style.textShadow = 'none';
+        this.inputHtmlElement.style.color = '#ddd';
       }
     });
 
     terminalDOM.addEventListener('click', () => {
-      input.focus();
+      this.inputHtmlElement.focus();
     });
 
-    input.addEventListener('keypress', event => {
-      // If the user presses the "Enter" key on the keyboard
+    this.inputHtmlElement.addEventListener('keypress', event => {
       if (event.key === 'Enter') {
-        // Cancel the default action, if needed
         event.preventDefault();
-        // this.enterAction()
+        this.exec(this.inputHtmlElement.textContent);
       }
     });
 
@@ -106,13 +111,82 @@ export class EasyTerminal {
     terminalStyle.setAttribute('type', 'text/css');
     terminalStyle.appendChild(document.createTextNode(css));
 
-    full.appendChild(content);
+    full.appendChild(this.contentHtmlElement);
     full.appendChild(prompt);
+    if (config.nativeCommands) this.createNativeCommands();
     config.elementHtml.appendChild(terminalDOM);
+  }
+
+  private createNativeCommands() {
+    this.nativeCommands = [
+      {
+        name: 'clear',
+        method: (cmd: CMD) => {
+          cmd.options.terminalElement.content.innerHTML = '';
+        },
+      },
+    ];
   }
 
   public destroy(): void {
     const head = document.head || document.getElementsByTagName('head')[0];
     head.removeChild(this.headerChildCSS);
+  }
+
+  public async exec(text: string | null) {
+    const commandContainer = document.createElement('div');
+    this.contentHtmlElement.appendChild(commandContainer);
+    this.inputHtmlElement.classList.remove('blink');
+    this.inputHtmlElement.style.color = 'transparent';
+    this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
+    this.inputHtmlElement.textContent = '';
+    this.inputHtmlElement.style.display = 'none';
+    const cmd = new CMD(
+      {
+        terminalElement: {
+          commandContainer,
+          content: this.contentHtmlElement,
+          input: this.inputHtmlElement,
+        },
+      },
+      this.config
+    );
+    cmd.echo(text || '', true);
+    const command = this.nativeCommands.find(c => c.name === text);
+    if (command) {
+      try {
+        await command.method(cmd);
+      } catch (err) {
+        console.error('Error exec ' + text, err);
+      }
+    }
+    if (!command) {
+      cmd.echo('Command not found');
+    }
+    this.inputHtmlElement.style.display = 'block';
+    this.contentHtmlElement.scrollTop =
+      this.contentHtmlElement.scrollHeight + 10;
+  }
+}
+
+export class CMD {
+  constructor(public options: ICMD, public terminalConfig: ITerminalConfig) {
+    this.options = options;
+    this.terminalConfig = terminalConfig;
+  }
+  public echo(text: string, ps = false) {
+    const divEcho = document.createElement('div');
+    divEcho.classList.add('echo');
+    divEcho.style.lineHeight = '2em';
+    if (this.terminalConfig['data-ps'] && ps) {
+      const spanPS = document.createElement('span');
+      spanPS.innerHTML = this.terminalConfig['data-ps'];
+      spanPS.style.paddingRight = '10px';
+      divEcho.appendChild(spanPS);
+    }
+    const spanEcho = document.createElement('span');
+    spanEcho.innerHTML = text;
+    divEcho.appendChild(spanEcho);
+    this.options.terminalElement.commandContainer.appendChild(divEcho);
   }
 }
