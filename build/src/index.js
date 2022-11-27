@@ -17,9 +17,11 @@ export class EasyTerminal {
         this.historyPos = -1;
         if (!config['data-ps'])
             config['data-ps'] = defaultDataPS;
+        if (!config.customCommands)
+            config.customCommands = [];
         const terminalDOM = document.createElement('div');
         terminalDOM.style.backgroundColor = 'black';
-        terminalDOM.style.color = 'white';
+        terminalDOM.style.color = '#ddd';
         terminalDOM.style.textAlign = 'left';
         terminalDOM.style.height = '100%';
         terminalDOM.style.display = 'flex';
@@ -34,17 +36,21 @@ export class EasyTerminal {
             headerTerminal.innerHTML = ((_d = config === null || config === void 0 ? void 0 : config.window) === null || _d === void 0 ? void 0 : _d.title) || 'EasyTerminal';
             terminalDOM.appendChild(headerTerminal);
         }
-        const full = document.createElement('div');
-        full.style.padding = '15px 15px 0 15px';
-        full.style.height = '100%';
-        full.style.overflow = 'auto';
+        this.terminalWrapperHtmlElement = document.createElement('div');
+        this.terminalWrapperHtmlElement.style.padding = '15px 15px 0 15px';
+        this.terminalWrapperHtmlElement.style.height = '100%';
+        this.terminalWrapperHtmlElement.style.overflow = 'auto';
+        this.terminalWrapperHtmlElement.style.fontFamily =
+            'Courier New,Courier,monospace';
+        this.terminalWrapperHtmlElement.style.fontSize = '1rem';
         if ((_e = config === null || config === void 0 ? void 0 : config.window) === null || _e === void 0 ? void 0 : _e.show) {
-            full.style.borderStyle = 'solid';
-            full.style.borderColor = ((_f = config === null || config === void 0 ? void 0 : config.window) === null || _f === void 0 ? void 0 : _f.bgColor) || '#198754';
-            full.style.borderWidth = '4px';
-            full.style.borderTop = '0';
+            this.terminalWrapperHtmlElement.style.borderStyle = 'solid';
+            this.terminalWrapperHtmlElement.style.borderColor =
+                ((_f = config === null || config === void 0 ? void 0 : config.window) === null || _f === void 0 ? void 0 : _f.bgColor) || '#198754';
+            this.terminalWrapperHtmlElement.style.borderWidth = '4px';
+            this.terminalWrapperHtmlElement.style.borderTop = '0';
         }
-        terminalDOM.appendChild(full);
+        terminalDOM.appendChild(this.terminalWrapperHtmlElement);
         this.contentHtmlElement = document.createElement('div');
         this.contentHtmlElement.classList.add('content');
         this.contentHtmlElement.innerHTML = config.welcome || '';
@@ -60,7 +66,6 @@ export class EasyTerminal {
         this.inputHtmlElement.style.lineHeight = '2em';
         this.inputHtmlElement.style.color = 'transparent';
         this.inputHtmlElement.style.textShadow = '0 0 0 #ddd';
-        this.inputHtmlElement.style.fontSize = '1rem';
         this.inputHtmlElement.contentEditable = 'true';
         this.inputHtmlElement.spellcheck = false;
         this.inputHtmlElement.setAttribute('data-ps', config['data-ps']);
@@ -137,18 +142,50 @@ export class EasyTerminal {
         this.headerChildCSS = head.appendChild(terminalStyle);
         terminalStyle.setAttribute('type', 'text/css');
         terminalStyle.appendChild(document.createTextNode(css));
-        full.appendChild(this.contentHtmlElement);
-        full.appendChild(prompt);
+        this.terminalWrapperHtmlElement.appendChild(this.contentHtmlElement);
+        this.terminalWrapperHtmlElement.appendChild(prompt);
         if (config.nativeCommands)
             this.createNativeCommands();
         config.elementHtml.appendChild(terminalDOM);
+    }
+    getAllCommands() {
+        return [...this.nativeCommands, ...this.config.customCommands];
     }
     createNativeCommands() {
         this.nativeCommands = [
             {
                 name: 'clear',
+                help: 'Cleans the screen leaving a new command prompt ready.',
                 method: (cmd) => {
                     cmd.options.terminalElements.content.innerHTML = '';
+                },
+            },
+            {
+                name: 'help',
+                help: 'Displays a list of useful information. Usage: <ul>' +
+                    "<li><i>help command-name</i> to show <i>command-name</i>'s help.</li>" +
+                    '<li><i>help -a</i> or <i>help --all</i> to display all help.</li></ul>',
+                method: (cmd) => {
+                    var _a;
+                    if (!((_a = cmd.options.info.args) === null || _a === void 0 ? void 0 : _a.length)) {
+                        cmd.echo('Use "help [comand name]" to display specific info about a command.');
+                        cmd.echo('Available commands are:');
+                        cmd.echoList(this.getAllCommands().map((cmd) => `${cmd.name}`), true);
+                    }
+                    else {
+                        if (['--all', '-a'].includes(cmd.options.info.args[0])) {
+                            cmd.echoList(this.getAllCommands().map((cmd) => `<b>${cmd.name}</b> - ${cmd.help}`));
+                        }
+                        else {
+                            const findCommad = this.getAllCommands().find(c => c.name === cmd.options.info.args[0]);
+                            if (findCommad) {
+                                cmd.echo(`<b>${findCommad.name}</b> - ${findCommad.help}`);
+                            }
+                            else {
+                                cmd.echo(`Command <i>${cmd.options.info.args[0]}</i> not found.`);
+                            }
+                        }
+                    }
                 },
             },
         ];
@@ -168,22 +205,23 @@ export class EasyTerminal {
             this.inputHtmlElement.style.display = 'none';
             const arrayText = text === null || text === void 0 ? void 0 : text.split(' ');
             arrayText === null || arrayText === void 0 ? void 0 : arrayText.shift();
-            const command = this.nativeCommands.find(c => c.name === (text === null || text === void 0 ? void 0 : text.split(' ')[0]));
+            const command = this.getAllCommands().find(c => c.name === (text === null || text === void 0 ? void 0 : text.split(' ')[0]));
             const cmd = new CMD({
                 terminalElements: {
                     commandContainer,
                     content: this.contentHtmlElement,
                     input: this.inputHtmlElement,
+                    terminalWrapper: this.terminalWrapperHtmlElement,
                 },
                 info: {
-                    args: arrayText || null,
+                    args: arrayText || [],
                     cmdFound: !!command,
                     fullText: text || '',
                     textArgs: (arrayText === null || arrayText === void 0 ? void 0 : arrayText.join(' ')) || '',
                     startDate: new Date(),
                 },
             }, this.config);
-            cmd.echo(text || '');
+            cmd.echo(text || '', true);
             if (command) {
                 try {
                     yield command.method(cmd);
@@ -200,8 +238,8 @@ export class EasyTerminal {
                 this.addToHistory(cmd.options);
             }
             this.inputHtmlElement.style.display = 'block';
-            this.contentHtmlElement.scrollTop =
-                this.contentHtmlElement.scrollHeight + 10;
+            this.terminalWrapperHtmlElement.scrollTop =
+                this.terminalWrapperHtmlElement.scrollHeight;
         });
     }
     addToHistory(cmdOtions) {
@@ -213,10 +251,11 @@ export class EasyTerminal {
     getHistory() {
         return this.history;
     }
-    getHTMLElement() {
+    getHTMLElements() {
         return {
             content: this.contentHtmlElement,
             input: this.inputHtmlElement,
+            terminalWrapper: this.terminalWrapperHtmlElement,
         };
     }
 }
@@ -227,11 +266,12 @@ export class CMD {
         this.options = options;
         this.terminalConfig = terminalConfig;
     }
-    echo(text, ps = true) {
+    echo(text, ps = false) {
         var _a;
         const divEcho = document.createElement('div');
         divEcho.classList.add('echo');
-        divEcho.style.lineHeight = '2em';
+        if (ps)
+            divEcho.style.lineHeight = '2em';
         if (this.terminalConfig['data-ps'] && ps) {
             const spanPS = document.createElement('span');
             spanPS.innerHTML = this.terminalConfig['data-ps'];
@@ -243,8 +283,43 @@ export class CMD {
         divEcho.appendChild(spanEcho);
         (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divEcho);
     }
+    echoList(textArray, inline = false) {
+        var _a;
+        const divEcho = document.createElement('div');
+        divEcho.classList.add('echo');
+        divEcho.style.lineHeight = '2em';
+        const ulEchoList = document.createElement('ul');
+        ulEchoList.style.padding = '0';
+        ulEchoList.style.margin = '0';
+        textArray.forEach(tLi => {
+            const li = document.createElement('li');
+            if (inline)
+                li.style.display = 'inline-block';
+            li.style.padding = '10px';
+            li.style.listStyle = 'none';
+            li.innerHTML += tLi;
+            ulEchoList.appendChild(li);
+        });
+        divEcho.appendChild(ulEchoList);
+        (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divEcho);
+    }
     log() {
         console.log(this);
+    }
+    select(obj) {
+        var _a;
+        console.log(typeof obj);
+        const divSelect = document.createElement('div');
+        divSelect.classList.add('select');
+        divSelect.style.lineHeight = '2em';
+        obj.forEach((obj, index) => {
+            const selectDiv = document.createElement('div');
+            if (!index) {
+                selectDiv.classList.add('selected');
+            }
+            divSelect.appendChild(selectDiv);
+        });
+        (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divSelect);
     }
 }
 //# sourceMappingURL=index.js.map

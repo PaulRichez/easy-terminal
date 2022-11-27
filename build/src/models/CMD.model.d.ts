@@ -3,7 +3,7 @@ export interface ICMD {
     terminalElements: ITerminalElements;
     info: {
         cmdFound: boolean;
-        args: string[] | null;
+        args: string[];
         fullText: string;
         textArgs: string;
         startDate: Date;

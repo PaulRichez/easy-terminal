@@ -1,4 +1,6 @@
 /* eslint-disable prettier/prettier */
+import {ITerminalCommand} from './TerminalCommand.model';
+
 export interface ITerminalConfig {
   window?: {
     show?: boolean;
@@ -11,4 +13,5 @@ export interface ITerminalConfig {
   'data-ps'?: string;
   history?: boolean;
   nativeCommands: boolean;
+  customCommands: ITerminalCommand[];
 }
