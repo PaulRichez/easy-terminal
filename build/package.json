@@ -7,6 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Paul Richez",
-    "repository": {"url": "https://github.com/PaulRichez/easy-terminal"},
+    "repository": {
+        "url": "https://github.com/PaulRichez/easy-terminal"
+    },
     "license": "MIT"
 }
