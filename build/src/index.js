@@ -138,6 +138,7 @@ export class EasyTerminal {
         css +=
             '.prompt .input::after { visibility : visible; content: "|"; margin-left:-0.15em;}';
         css += '.prompt .input.blink::after { visibility : hidden; }';
+        css += '.content ul.select li.selected { list-style : circle !important; }';
         const head = document.head || document.getElementsByTagName('head')[0];
         this.headerChildCSS = head.appendChild(terminalStyle);
         terminalStyle.setAttribute('type', 'text/css');
@@ -238,6 +239,7 @@ export class EasyTerminal {
                 this.addToHistory(cmd.options);
             }
             this.inputHtmlElement.style.display = 'block';
+            this.inputHtmlElement.focus();
             this.terminalWrapperHtmlElement.scrollTop =
                 this.terminalWrapperHtmlElement.scrollHeight;
         });
@@ -306,20 +308,71 @@ export class CMD {
     log() {
         console.log(this);
     }
-    select(obj) {
-        var _a;
-        console.log(typeof obj);
-        const divSelect = document.createElement('div');
-        divSelect.classList.add('select');
-        divSelect.style.lineHeight = '2em';
-        obj.forEach((obj, index) => {
-            const selectDiv = document.createElement('div');
-            if (!index) {
-                selectDiv.classList.add('selected');
-            }
-            divSelect.appendChild(selectDiv);
+    select(obj, echoResult = false) {
+        if (!obj)
+            return Promise.reject();
+        return new Promise(resolve => {
+            var _a;
+            let currentValue = 0;
+            const divSelect = document.createElement('ul');
+            divSelect.classList.add('select');
+            divSelect.tabIndex = 0;
+            divSelect.style.margin = '0';
+            divSelect.style.lineHeight = '2em';
+            divSelect.style.outline = 'none';
+            obj.forEach((o, index) => {
+                const selectLi = document.createElement('li');
+                selectLi.style.listStyle = 'none';
+                if (index === currentValue) {
+                    selectLi.classList.add('selected');
+                }
+                selectLi.innerHTML = o.label
+                    ? o.label
+                    : o.toString();
+                divSelect.appendChild(selectLi);
+            });
+            const setFocus = () => {
+                setTimeout(() => divSelect.focus(), 0);
+            };
+            setFocus();
+            this.options.terminalElements.terminalWrapper.addEventListener('click', setFocus);
+            divSelect.addEventListener('keydown', event => {
+                switch (event.key) {
+                    case 'Enter':
+                        event.preventDefault();
+                        this.options.terminalElements.terminalWrapper.removeEventListener('click', setFocus);
+                        divSelect.remove();
+                        if (echoResult) {
+                            this.echo(obj[currentValue].label
+                                ? obj[currentValue].label
+                                : obj[currentValue].toString());
+                        }
+                        resolve(obj[currentValue]);
+                        break;
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        if (currentValue < obj.length - 1) {
+                            divSelect
+                                .getElementsByTagName('li')[currentValue].classList.remove('selected');
+                            currentValue++;
+                            divSelect
+                                .getElementsByTagName('li')[currentValue].classList.add('selected');
+                        }
+                        break;
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        if (currentValue > 0) {
+                            divSelect
+                                .getElementsByTagName('li')[currentValue].classList.remove('selected');
+                            currentValue--;
+                            divSelect
+                                .getElementsByTagName('li')[currentValue].classList.add('selected');
+                        }
+                        break;
+                }
+            });
+            (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divSelect);
         });
-        (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divSelect);
     }
 }
 //# sourceMappingURL=index.js.map

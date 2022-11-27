@@ -28,5 +28,5 @@ export declare class CMD {
     echo(text: string, ps?: boolean): void;
     echoList(textArray: string[], inline?: boolean): void;
     log(): void;
-    select(obj: ICMDSelect[] | string[]): void;
+    select(obj: ICMDSelect[] | string[], echoResult?: boolean): Promise<unknown>;
 }
