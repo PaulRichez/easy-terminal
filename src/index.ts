@@ -1,9 +1,11 @@
+import {IAskInputOptions} from './models/askInputoptions.model';
 import {ICMD} from './models/CMD.model';
 import {ICMDSelect} from './models/CMDSelect.model';
 import {ITerminalCommand} from './models/TerminalCommand.model';
 import {ITerminalConfig} from './models/TerminalConfig.model';
 import {ITerminalElements} from './models/terminalElements.model';
 const defaultDataPS = '$';
+
 export class EasyTerminal {
   private headerChildCSS: HTMLStyleElement;
   private contentHtmlElement: HTMLElement;
@@ -330,7 +332,51 @@ export class CMD {
   public log() {
     console.log(this);
   }
-
+  public ask(
+    text: string,
+    echoResult = false,
+    inputOptions?: IAskInputOptions
+  ): Promise<unknown> {
+    return new Promise(resolve => {
+      const divAsk = document.createElement('div');
+      divAsk.style.display = 'flex';
+      divAsk.style.flexDirection = 'row';
+      divAsk.style.alignItems = 'center';
+      const askText = document.createElement('div');
+      askText.innerHTML = text;
+      askText.style.marginRight = '8px';
+      const askInput = document.createElement('div');
+      askInput.style.outline = 'none';
+      askInput.style.flexGrow = '1';
+      askInput.style.wordWrap = 'break-word';
+      askInput.style.whiteSpace = 'pre-wrap';
+      askInput.style.lineHeight = '2em';
+      askInput.style.color = '#ddd';
+      askInput.contentEditable = 'true';
+      divAsk.appendChild(askText);
+      divAsk.appendChild(askInput);
+      const setFocus = () => {
+        setTimeout(() => askInput.focus(), 0);
+      };
+      setFocus();
+      askInput.addEventListener('keydown', event => {
+        switch (event.key) {
+          case 'Enter':
+            event.preventDefault();
+            if (echoResult) {
+              askInput.contentEditable = 'false';
+              askInput.replaceWith(askInput.cloneNode(true));
+            } else {
+              askInput.replaceWith(askInput.cloneNode(true));
+              divAsk.remove();
+            }
+            resolve(askInput.textContent || '');
+            break;
+        }
+      });
+      this.options.terminalElements.commandContainer?.appendChild(divAsk);
+    });
+  }
   public select(
     obj: ICMDSelect[] | string[],
     echoResult = false

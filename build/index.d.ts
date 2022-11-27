@@ -1,3 +1,4 @@
+import { IAskInputOptions } from './models/askInputoptions.model';
 import { ICMD } from './models/CMD.model';
 import { ICMDSelect } from './models/CMDSelect.model';
 import { ITerminalCommand } from './models/TerminalCommand.model';
@@ -28,5 +29,6 @@ export declare class CMD {
     echo(text: string, ps?: boolean): void;
     echoList(textArray: string[], inline?: boolean): void;
     log(): void;
+    ask(text: string, echoResult?: boolean, inputOptions?: IAskInputOptions): Promise<unknown>;
     select(obj: ICMDSelect[] | string[], echoResult?: boolean): Promise<unknown>;
 }

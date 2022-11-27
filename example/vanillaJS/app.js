@@ -25,6 +25,13 @@ new EasyTerminal({
             method: async function (cmd) {
                 return await cmd.select(stringsTest, false)
             }
+        },
+        {
+            name: 'askAge',
+            help: 'ask age to user',
+            method: async function (cmd) {
+                return await cmd.ask('age ?', true)
+            }
         }
     ]
 });

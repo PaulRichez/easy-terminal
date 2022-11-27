@@ -308,6 +308,49 @@ export class CMD {
     log() {
         console.log(this);
     }
+    ask(text, echoResult = false, inputOptions) {
+        return new Promise(resolve => {
+            var _a;
+            const divAsk = document.createElement('div');
+            divAsk.style.display = 'flex';
+            divAsk.style.flexDirection = 'row';
+            divAsk.style.alignItems = 'center';
+            const askText = document.createElement('div');
+            askText.innerHTML = text;
+            askText.style.marginRight = '8px';
+            const askInput = document.createElement('div');
+            askInput.style.outline = 'none';
+            askInput.style.flexGrow = '1';
+            askInput.style.wordWrap = 'break-word';
+            askInput.style.whiteSpace = 'pre-wrap';
+            askInput.style.lineHeight = '2em';
+            askInput.style.color = '#ddd';
+            askInput.contentEditable = 'true';
+            divAsk.appendChild(askText);
+            divAsk.appendChild(askInput);
+            const setFocus = () => {
+                setTimeout(() => askInput.focus(), 0);
+            };
+            setFocus();
+            askInput.addEventListener('keydown', event => {
+                switch (event.key) {
+                    case 'Enter':
+                        event.preventDefault();
+                        if (echoResult) {
+                            askInput.contentEditable = 'false';
+                            askInput.replaceWith(askInput.cloneNode(true));
+                        }
+                        else {
+                            askInput.replaceWith(askInput.cloneNode(true));
+                            divAsk.remove();
+                        }
+                        resolve(askInput.textContent || '');
+                        break;
+                }
+            });
+            (_a = this.options.terminalElements.commandContainer) === null || _a === void 0 ? void 0 : _a.appendChild(divAsk);
+        });
+    }
     select(obj, echoResult = false) {
         if (!obj)
             return Promise.reject();
