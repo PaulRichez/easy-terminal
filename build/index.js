@@ -308,7 +308,7 @@ export class CMD {
     log() {
         console.log(this);
     }
-    ask(text, echoResult = false, inputOptions) {
+    ask(text, echoResult = false) {
         return new Promise(resolve => {
             var _a;
             const divAsk = document.createElement('div');

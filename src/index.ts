@@ -1,4 +1,3 @@
-import {IAskInputOptions} from './models/askInputoptions.model';
 import {ICMD} from './models/CMD.model';
 import {ICMDSelect} from './models/CMDSelect.model';
 import {ITerminalCommand} from './models/TerminalCommand.model';
@@ -332,11 +331,7 @@ export class CMD {
   public log() {
     console.log(this);
   }
-  public ask(
-    text: string,
-    echoResult = false,
-    inputOptions?: IAskInputOptions
-  ): Promise<unknown> {
+  public ask(text: string, echoResult = false): Promise<unknown> {
     return new Promise(resolve => {
       const divAsk = document.createElement('div');
       divAsk.style.display = 'flex';
