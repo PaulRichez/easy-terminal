@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-// eslint-disable-next-line node/no-unsupported-features/es-syntax
+// eslint-disable-next-line node/no-unsupported-features/es-syntax, node/no-unpublished-import
 import { EasyTerminal } from '../../dist/index.js';
 // eslint-disable-next-line no-undef
 const terminalElement = window.document.getElementById('terminal');
