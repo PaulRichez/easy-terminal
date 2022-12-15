@@ -13,8 +13,8 @@
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
     "posttest": "npm.cmd run lint",
-    "demo": "cd ./demo && npm install",
-    "pre-publish": "npm run compile && npm run copyfiles && npm run minify",
+    "pre-publish": "npm run compile && npm run copyfiles && npm run minify && npm run demo",
+    "demo": "copyfiles dist/index.js demo/easy-terminal/ -f",
     "copyfiles": "copyfiles  dist/index* build -f -a && copyfiles dist/models/*.ts build/models -f && copyfiles readme.md build",
     "minify": "terser --compress --mangle --output ./build/index.js -- ./build/index.js"
   },
