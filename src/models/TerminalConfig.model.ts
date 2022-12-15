@@ -12,6 +12,7 @@ export interface ITerminalConfig {
   elementHtml: HTMLElement;
   'data-ps'?: string;
   history?: boolean;
+  noEmptyCommand?: boolean;
   nativeCommands: boolean;
   customCommands: ITerminalCommand[];
 }

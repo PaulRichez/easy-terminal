@@ -11,6 +11,7 @@ new EasyTerminal({
     nativeCommands: true,
     welcome: 'Welcome to EasyTerminal',
     history: true,
+    noEmptyCommand: true,
     customCommands: [
         {
             name: 'test',

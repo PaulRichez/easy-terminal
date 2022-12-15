@@ -107,6 +107,11 @@ export class EasyTerminal {
       switch (event.key) {
         case 'Enter':
           event.preventDefault();
+          if (
+            this.config.noEmptyCommand &&
+            !this.inputHtmlElement.textContent?.trim()
+          )
+            return;
           this.exec(this.inputHtmlElement.textContent);
           break;
         case 'ArrowDown':

@@ -100,9 +100,13 @@ export class EasyTerminal {
             this.inputHtmlElement.focus();
         });
         this.inputHtmlElement.addEventListener('keydown', event => {
+            var _a;
             switch (event.key) {
                 case 'Enter':
                     event.preventDefault();
+                    if (this.config.noEmptyCommand &&
+                        !((_a = this.inputHtmlElement.textContent) === null || _a === void 0 ? void 0 : _a.trim()))
+                        return;
                     this.exec(this.inputHtmlElement.textContent);
                     break;
                 case 'ArrowDown':
