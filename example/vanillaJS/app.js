@@ -21,8 +21,8 @@ new EasyTerminal({
             }
         },
         {
-            name: 'testS',
-            help: 'test command',
+            name: 'test2',
+            help: 'test2 command',
             method: async function (cmd) {
                 return await cmd.select(stringsTest, false)
             }
