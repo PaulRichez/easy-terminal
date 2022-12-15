@@ -2,6 +2,9 @@
 
 An easy to use web terminal without any dependency and minified.
 
+[Demo](https://easy-terminal.vercel.app/)
+
+
 ## Installation
 
 ```
