@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 // eslint-disable-next-line node/no-unsupported-features/es-syntax, node/no-unpublished-import
-const EasyTerminal = require('easy-terminal');
+import { EasyTerminal } from './node_modules/easy-terminal/index.js';
+
 // eslint-disable-next-line no-undef
 const terminalElement = window.document.getElementById('terminal');
 const objTest = [{ label: 'l1', value: 'l1' }, { label: 'l2', value: 'l2' }]

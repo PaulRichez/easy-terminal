@@ -14,7 +14,7 @@ see the [example folder](https://github.com/PaulRichez/easy-terminal/tree/master
 
 
 ```js
-const EasyTerminal = require('easy-terminal');
+import { EasyTerminal } from './node_modules/easy-terminal/index.js';
 const terminalElement = window.document.getElementById('terminal'); // div where you want the terminal
 new EasyTerminal({
     elementHtml: terminalElement,
