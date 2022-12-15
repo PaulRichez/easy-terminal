@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 // eslint-disable-next-line node/no-unsupported-features/es-syntax
-import { EasyTerminal } from '../../build/index.js';
+import { EasyTerminal } from '../../dist/index.js';
 // eslint-disable-next-line no-undef
 const terminalElement = window.document.getElementById('terminal');
 const objTest = [{ label: 'l1', value: 'l1' }, { label: 'l2', value: 'l2' }]
@@ -31,7 +31,8 @@ new EasyTerminal({
             name: 'askAge',
             help: 'ask age to user',
             method: async function (cmd) {
-                return await cmd.ask('age ?', true)
+                const age = await cmd.ask('age ?', true);
+                cmd.echo('Age: ' + age);
             }
         }
     ]

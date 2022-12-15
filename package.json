@@ -12,7 +12,10 @@
     "fix": "gts fix",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "posttest": "npm.cmd run lint",
+    "pre-publish": "npm run compile && npm run copyfiles && npm run minify",
+    "copyfiles": "copyfiles  dist/index* build -f -a && copyfiles dist/models/*.ts build/models -f && copyfiles readme.md build",
+    "minify": "terser --compress --mangle --output ./build/index.js -- ./build/index.js"
   },
   "author": ".",
   "license": "MIT",
@@ -20,6 +23,7 @@
     "@types/node": "^14.11.2",
     "gts": "^3.1.1",
     "terser": "^5.16.0",
-    "typescript": "~4.7.0"
+    "typescript": "~4.7.0",
+    "copyfiles": "^2.4.1"
   }
 }
