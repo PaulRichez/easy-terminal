@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {ICMD} from './models/CMD.model';
 import {ICMDSelect} from './models/CMDSelect.model';
 import {ITerminalCommand} from './models/TerminalCommand.model';
@@ -100,7 +101,9 @@ export class EasyTerminal {
     });
 
     terminalDOM.addEventListener('click', () => {
-      this.inputHtmlElement.focus();
+      this.inputHtmlElement.focus({
+        preventScroll: true
+      });
     });
 
     this.inputHtmlElement.addEventListener('keydown', event => {
@@ -266,7 +269,9 @@ export class EasyTerminal {
       this.addToHistory(cmd.options);
     }
     this.inputHtmlElement.style.display = 'block';
-    this.inputHtmlElement.focus();
+    this.inputHtmlElement.focus({
+      preventScroll: true
+    });
     this.terminalWrapperHtmlElement.scrollTop =
       this.terminalWrapperHtmlElement.scrollHeight;
   }
@@ -356,7 +361,9 @@ export class CMD {
       divAsk.appendChild(askText);
       divAsk.appendChild(askInput);
       const setFocus = () => {
-        setTimeout(() => askInput.focus(), 0);
+        setTimeout(() => askInput.focus({
+          preventScroll: true
+        }), 0);
       };
       setFocus();
       askInput.addEventListener('keydown', event => {
@@ -402,7 +409,9 @@ export class CMD {
         divSelect.appendChild(selectLi);
       });
       const setFocus = () => {
-        setTimeout(() => divSelect.focus(), 0);
+        setTimeout(() => divSelect.focus({
+          preventScroll: true
+        }), 0);
       };
       setFocus();
       this.options.terminalElements.terminalWrapper.addEventListener(
