@@ -1,6 +1,6 @@
 {
     "name": "easy-terminal",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "",
     "main": "index.js",
     "scripts": {
@@ -10,5 +10,8 @@
     "repository": {
         "url": "https://github.com/PaulRichez/easy-terminal"
     },
-    "license": "ISC"
+    "license": "ISC",
+    "keywords": [
+        "terminal js"
+    ]
 }
